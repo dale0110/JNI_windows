@@ -1,0 +1,149 @@
+//cl /EHsc MathClient.cpp /link MathLibrary.lib 
+
+#include <jni.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "HelloJNI.h"
+
+#include <time.h>
+#include <string.h>
+#include <vector>
+#include <string>
+#include <iostream>
+
+
+#ifdef WIN32
+#include <windows.h>
+
+
+	#define _CRTDBG_MAP_ALLOC
+	#include <crtdbg.h>
+ 
+#ifdef _DEBUG
+     #define new new( _NORMAL_BLOCK , __FILE__ , __LINE__ )
+#else
+     #define new new
+#endif
+
+
+
+
+#else
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#endif
+
+
+
+
+using namespace std;
+
+
+struct ElemSCT
+{
+  public :
+        string str ;
+        int id ;
+};
+
+std::string gen_random(const int len) {
+
+    std::string tmp_s;
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+
+    srand( (unsigned) time(NULL));
+
+    tmp_s.reserve(len);
+
+    for (int i = 0; i < len; ++i)
+        tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+
+    return tmp_s;
+
+}
+
+int getElem(vector <ElemSCT> &t)
+{
+        ElemSCT w1 ;
+
+        cout<<"capacity="<<t.capacity()<<endl;
+
+        for(int i=0; i<1000; i++)
+        {
+                w1.str = gen_random(10) ;
+                w1.id = i ;
+                t.push_back(w1);
+        }
+
+        cout << t.size() <<endl ;
+        cout<<"capacity="<<t.capacity()<<endl;
+
+        return 0;
+}
+
+int test()
+{
+        vector <ElemSCT> t ;
+
+        for(int i=0; i<100; i++)
+        {
+         getElem(t);
+        ElemSCT *p= new ElemSCT();
+
+        cout << t.size() <<endl ;
+         //sleep(1);
+        }
+
+
+
+
+        return 0 ;
+}
+
+#ifdef WIN32
+JNIEXPORT void JNICALL Java_HelloJNI_sayHello(JNIEnv *env, jobject thisObj) 
+{
+        HANDLE hLogFile;
+  hLogFile = CreateFile("memleak.log", GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ,
+              NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+  _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+  _CrtSetReportFile(_CRT_WARN, hLogFile);
+
+        _CrtMemState s1, s2, s3;
+
+        _CrtMemCheckpoint( &s1 );
+
+        test();
+        int *ptr=(int *)malloc(1024);
+        memset(ptr,0,1025);
+        _CrtMemCheckpoint( &s2 );
+ if ( _CrtMemDifference( &s3, &s1, &s2) )
+                _CrtMemDumpStatistics( &s3 );
+
+        cout<<"Memory leak test!"<<endl;
+         _CrtDumpMemoryLeaks();
+         return ;
+}
+
+#else
+JNIEXPORT void JNICALL Java_HelloJNI_sayHello(JNIEnv *env, jobject thisObj)
+{
+        test();
+        //for(int i=0;i<1000;i++)
+        //{
+        //      sleep(100);
+        //}
+//int *ptr=(int *)malloc(1024);
+
+//   memset(ptr,0,5000);
+
+}
+
+#endif
+
+
